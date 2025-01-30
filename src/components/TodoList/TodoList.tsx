@@ -7,14 +7,14 @@ type Props = {
   todos: Todo[];
   setTodos: React.Dispatch<React.SetStateAction<Todo[]>>;
   handleDeleteTodo: (id: number) => void;
-  isLoading: boolean;
+  loadingTodoId: number | null;
 };
 
 export const TodoList: React.FC<Props> = ({
   todos,
   setTodos,
   handleDeleteTodo,
-  isLoading,
+  loadingTodoId,
 }) => {
   const handleToggleTodoCompleted = (id: number) => {
     setTodos(
@@ -32,7 +32,7 @@ export const TodoList: React.FC<Props> = ({
           todo={todo}
           handleDeleteTodo={handleDeleteTodo}
           handleToggleTodoCompleted={handleToggleTodoCompleted}
-          isLoading={isLoading}
+          loadingTodoId={loadingTodoId}
         />
       ))}
     </section>

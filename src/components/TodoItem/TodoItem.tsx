@@ -9,14 +9,14 @@ type Props = {
   todo: Todo;
   handleDeleteTodo: (id: number) => void;
   handleToggleTodoCompleted: (id: number) => void;
-  isLoading: boolean;
+  loadingTodoId: number | null;
 };
 
 export const TodoItem: React.FC<Props> = ({
   todo,
   handleDeleteTodo,
   handleToggleTodoCompleted,
-  isLoading,
+  loadingTodoId,
 }) => {
   const { id, title, completed } = todo;
 
@@ -48,7 +48,7 @@ export const TodoItem: React.FC<Props> = ({
         ×
       </button>
 
-      <TodoLoader id={id} isLoading={isLoading} />
+      <TodoLoader id={id} loadingTodoId={loadingTodoId} />
     </div>
   );
 };

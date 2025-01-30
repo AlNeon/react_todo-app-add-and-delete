@@ -1,5 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import cn from 'classnames';
+import React, { useEffect, useMemo, useState } from 'react';
 
 import { UserWarning } from './UserWarning';
 import { USER_ID, getTodos, createTodo, deleteTodo } from './api/todos';
@@ -9,8 +8,9 @@ import { FilterType } from './types/FilterType';
 import { ErrorMessages } from './types/ErrorMessages';
 
 import { TodoList } from './components/TodoList';
-import { TodoFilter } from './components/TodoFilter';
 import { ErrorNotification } from './components/ErrorNotification';
+import { Header } from './components/Header';
+import { Footer } from './components/Footer';
 
 export const App: React.FC = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
@@ -21,7 +21,7 @@ export const App: React.FC = () => {
   const [isAllCompleted, setIsAllCompleted] = useState(
     todos.every(todo => todo.completed === true),
   );
-  const [isLoading, setIsLoading] = useState(false);
+  const [loadingTodoId, setLoadingTodoId] = useState<number | null>(null);
 
   const filteredTodos = useMemo(() => {
     return todos.filter(todo => {
@@ -40,14 +40,6 @@ export const App: React.FC = () => {
     () => todos.filter(todo => !todo.completed).length,
     [todos],
   );
-
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (inputRef.current) {
-      inputRef.current.focus();
-    }
-  });
 
   useEffect(() => {
     getTodos()
@@ -83,11 +75,6 @@ export const App: React.FC = () => {
     );
   };
 
-  const handleQueryChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setQuery(event.target.value);
-    setError('Empty');
-  };
-
   const handleAddTodo = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key !== 'Enter') {
       return;
@@ -112,17 +99,16 @@ export const App: React.FC = () => {
     createTodo({ userId: USER_ID, title: trimmedQuery, completed: false })
       .then(newTodo => {
         setTodos(prevTodos => [...prevTodos, newTodo]);
-        setTempTodo(null);
         setQuery('');
       })
       .catch(() => {
         setError('Add');
-        setTempTodo(null);
-      });
+      })
+      .finally(() => setTempTodo(null));
   };
 
   const handleDeleteTodo = (id: number) => {
-    setIsLoading(true);
+    setLoadingTodoId(id);
 
     return deleteTodo(id)
       .then(() =>
@@ -132,7 +118,7 @@ export const App: React.FC = () => {
         setError('Delete');
         throw err;
       })
-      .finally(() => setIsLoading(false));
+      .finally(() => setLoadingTodoId(null));
   };
 
   const handleClearCompletedTodos = () => {
@@ -152,60 +138,34 @@ export const App: React.FC = () => {
       <h1 className="todoapp__title">todos</h1>
 
       <div className="todoapp__content">
-        <header className="todoapp__header">
-          {todos.length > 0 && (
-            <button
-              type="button"
-              className={cn('todoapp__toggle-all', {
-                active: isAllCompleted,
-              })}
-              data-cy="ToggleAllButton"
-              onClick={handleAllTodoCompleted}
-            />
-          )}
-
-          <form>
-            <input
-              ref={inputRef}
-              data-cy="NewTodoField"
-              type="text"
-              className="todoapp__new-todo"
-              placeholder="What needs to be done?"
-              disabled={!!tempTodo}
-              value={query}
-              onChange={handleQueryChange}
-              onKeyDown={handleAddTodo}
-            />
-          </form>
-        </header>
+        <Header
+          todosCount={todos.length}
+          isTempTodo={!!tempTodo}
+          isAllCompleted={isAllCompleted}
+          query={query}
+          setQuery={setQuery}
+          setError={setError}
+          handleAllTodoCompleted={handleAllTodoCompleted}
+          handleAddTodo={handleAddTodo}
+        />
 
         {todos && (
           <TodoList
             todos={[...filteredTodos, ...(tempTodo ? [tempTodo] : [])]}
             setTodos={setTodos}
             handleDeleteTodo={handleDeleteTodo}
-            isLoading={isLoading}
+            loadingTodoId={loadingTodoId}
           />
         )}
 
         {todos.length > 0 && (
-          <footer className="todoapp__footer" data-cy="Footer">
-            <span className="todo-count" data-cy="TodosCounter">
-              {uncompletedTodosCount} items left
-            </span>
-
-            <TodoFilter filter={filter} handleFilter={handleFilter} />
-
-            <button
-              type="button"
-              className="todoapp__clear-completed"
-              data-cy="ClearCompletedButton"
-              disabled={todos.length === uncompletedTodosCount}
-              onClick={handleClearCompletedTodos}
-            >
-              Clear completed
-            </button>
-          </footer>
+          <Footer
+            uncompletedTodosCount={uncompletedTodosCount}
+            filter={filter}
+            handleFilter={handleFilter}
+            handleClearCompletedTodos={handleClearCompletedTodos}
+            hasCompletedTodos={todos.length !== uncompletedTodosCount}
+          />
         )}
       </div>
 

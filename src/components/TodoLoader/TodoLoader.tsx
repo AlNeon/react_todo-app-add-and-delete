@@ -3,14 +3,14 @@ import cn from 'classnames';
 
 type Props = {
   id: number;
-  isLoading: boolean;
+  loadingTodoId: number | null;
 };
 
-export const TodoLoader: React.FC<Props> = ({ id, isLoading }) => (
+export const TodoLoader: React.FC<Props> = ({ id, loadingTodoId }) => (
   <div
     data-cy="TodoLoader"
     className={cn('modal overlay', {
-      'is-active': isLoading || id === 0,
+      'is-active': loadingTodoId !== null || id === 0,
     })}
   >
     <div className="modal-background has-background-white-ter" />
